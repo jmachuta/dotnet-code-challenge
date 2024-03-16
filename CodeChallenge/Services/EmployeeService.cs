@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CodeChallenge.Extensions;
 using CodeChallenge.Models;
 using Microsoft.Extensions.Logging;
 using CodeChallenge.Repositories;
@@ -58,6 +59,32 @@ namespace CodeChallenge.Services
             }
 
             return newEmployee;
+        }
+
+        public ReportingStructure GetReportingStructureById(string id)
+        {
+            var employee = GetById(id);
+
+            if (employee != null)
+            {
+                int numberOfReports = GetSumOfDirectReports(employee);
+                return new ReportingStructure(employee, numberOfReports);
+            }
+
+            return null;
+        }
+
+        private int GetSumOfDirectReports(Employee employee)
+        {
+            int reports = 0;
+
+            foreach (var report in employee.DirectReports.AsNullSafe())
+            {
+                reports++;
+                reports += GetSumOfDirectReports(report);
+            }
+
+            return reports;
         }
     }
 }
