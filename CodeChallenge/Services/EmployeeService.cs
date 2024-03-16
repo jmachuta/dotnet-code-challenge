@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CodeChallenge.DTO;
 using CodeChallenge.Extensions;
 using CodeChallenge.Models;
 using Microsoft.Extensions.Logging;
@@ -12,11 +13,13 @@ namespace CodeChallenge.Services
     public class EmployeeService : IEmployeeService
     {
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly ICompensationRepository _compensationRepository;
         private readonly ILogger<EmployeeService> _logger;
 
-        public EmployeeService(ILogger<EmployeeService> logger, IEmployeeRepository employeeRepository)
+        public EmployeeService(ILogger<EmployeeService> logger, IEmployeeRepository employeeRepository, ICompensationRepository compensationRepository)
         {
             _employeeRepository = employeeRepository;
+            _compensationRepository = compensationRepository;
             _logger = logger;
         }
 
@@ -85,6 +88,35 @@ namespace CodeChallenge.Services
             }
 
             return reports;
+        }
+
+        public Compensation CreateCompensation(Compensation compensation)
+        {
+            if (compensation != null)
+            {
+                // Mapping model to a dto that has the employeeId instead of the whole employee object
+                // Since employees are persisted elsewhere, we really only need to relate the compensation data with the employeeId
+                var compensationDto = new CompensationDto(compensation);
+               
+                _compensationRepository.Add(compensationDto);
+                _compensationRepository.SaveAsync().Wait();
+            }
+
+            return compensation;
+        }
+
+        public Compensation GetCompensationById(string id)
+        {
+            var employee = GetById(id);
+
+            if (employee != null)
+            {
+                var compensationDto = _compensationRepository.GetById(id);
+
+                return compensationDto != null ? new Compensation(employee, compensationDto) : null;
+            }
+
+            return null;
         }
     }
 }
