@@ -29,6 +29,9 @@ namespace CodeChallenge.Repositories
 
         public Employee GetById(string id)
         {
+            // Lazy loading was not populating any direct reports unless I debugged through this method specifically
+            // Added an explicit load just to get the reports to populate
+            _employeeContext.Employees.Load();
             return _employeeContext.Employees.SingleOrDefault(e => e.EmployeeId == id);
         }
 
